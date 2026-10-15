@@ -1,0 +1,115 @@
+@{
+    var titulo = ViewData["Title"] as string ?? "Estacionamiento";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@titulo - Estacionamiento</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <!-- Vue 3 vía CDN: lo vamos a necesitar para el ABM con Vue + Ajax que pide la consigna. -->
+    <script src="https://unpkg.com/vue@3"></script>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">Estacionamiento</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarMenu">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Vehículos</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Vehiculo" asp-action="Index">Ver todos</a></li>
+                                <li><a class="dropdown-item" asp-controller="Vehiculo" asp-action="Create">Nuevo vehículo</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" asp-controller="TipoVehiculo" asp-action="Index">Tipos de vehículo</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Clientes</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Cliente" asp-action="Index">Ver todos</a></li>
+                                <li><a class="dropdown-item" asp-controller="Cliente" asp-action="Create">Nuevo cliente</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Cocheras</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Cochera" asp-action="Disponibilidad">Disponibilidad</a></li>
+                                <li><a class="dropdown-item" asp-controller="Cochera" asp-action="Index">Ver todas</a></li>
+                                <li><a class="dropdown-item" asp-controller="Cochera" asp-action="Create">Nueva cochera</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Tarifas</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Tarifa" asp-action="Index">Ver todas</a></li>
+                                <li><a class="dropdown-item" asp-controller="Tarifa" asp-action="Create">Nueva tarifa</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Abonos</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Abono" asp-action="Index">Ver todos</a></li>
+                                <li><a class="dropdown-item" asp-controller="Abono" asp-action="Create">Nuevo abono</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Estadías</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Estadia" asp-action="Ingreso">Registrar ingreso</a></li>
+                                <li><a class="dropdown-item" asp-controller="Estadia" asp-action="Index">Vehículos adentro</a></li>
+                                <li><a class="dropdown-item" asp-controller="Estadia" asp-action="Historial">Historial</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Usuarios</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Usuario" asp-action="Index">Ver todos</a></li>
+                                <li><a class="dropdown-item" asp-controller="Usuario" asp-action="Create">Nuevo usuario</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-4">
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Mensaje"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted py-3">
+        <div class="container">
+            &copy; @DateTime.Now.Year - Estacionamiento
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
