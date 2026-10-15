@@ -1,0 +1,74 @@
+@{
+    ViewData["Title"] = "Registrar ingreso";
+}
+
+<h1>Registrar ingreso</h1>
+
+<form asp-action="Ingreso" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3 position-relative">
+            <label class="form-label">Vehículo (patente)</label>
+            <input type="hidden" name="idVehiculo" id="idVehiculo" />
+            <input type="text" id="buscadorVehiculo" class="form-control text-uppercase" autocomplete="off"
+                   placeholder="Escribí la patente..." required />
+            <div class="list-group position-absolute shadow w-100" id="resultadosVehiculo" style="z-index: 10;"></div>
+            <div class="form-text">
+                ¿No está registrado? <a asp-controller="Vehiculo" asp-action="Index" asp-route-nuevo="1">Cargar vehículo</a>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="btnIngreso">Registrar ingreso</button>
+    <a asp-action="Index" class="btn btn-link">Cancelar</a>
+</form>
+
+@section Scripts {
+    <script>
+        const input = document.getElementById('buscadorVehiculo');
+        const hidden = document.getElementById('idVehiculo');
+        const lista = document.getElementById('resultadosVehiculo');
+        let temporizador;
+
+        input.addEventListener('input', () => {
+            hidden.value = '';
+            clearTimeout(temporizador);
+            const term = input.value.trim();
+            if (term.length < 2) { lista.innerHTML = ''; return; }
+
+            temporizador = setTimeout(async () => {
+                const resp = await fetch('@Url.Action("BuscarPorPatente", "Vehiculo")?term=' + encodeURIComponent(term));
+                const vehiculos = await resp.json();
+                lista.innerHTML = '';
+                vehiculos.forEach(v => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action';
+                    item.textContent = `${v.patente} — ${v.marca} ${v.modelo} (${v.tipo})`;
+                    item.addEventListener('click', () => {
+                        hidden.value = v.id;
+                        input.value = v.patente;
+                        lista.innerHTML = '';
+                    });
+                    lista.appendChild(item);
+                });
+                if (vehiculos.length === 0) {
+                    const vacio = document.createElement('div');
+                    vacio.className = 'list-group-item text-muted';
+                    vacio.textContent = 'Sin resultados';
+                    lista.appendChild(vacio);
+                }
+            }, 300);
+        });
+
+        // No se envía si no eligió un vehículo de la lista.
+        document.querySelector('form').addEventListener('submit', e => {
+            if (!hidden.value) {
+                e.preventDefault();
+                alert('Elegí un vehículo de la lista de resultados.');
+            }
+        });
+    </script>
+}
+

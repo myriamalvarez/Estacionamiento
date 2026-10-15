@@ -1,0 +1,19 @@
+@model TipoVehiculo
+@{
+    ViewData["Title"] = "Detalle del tipo de vehículo";
+}
+
+<h1>@Model.Descripcion</h1>
+
+<ul class="list-group mb-4">
+    <li class="list-group-item">
+        <strong>Estado:</strong>
+        <span class="badge @(Model.Activo ? "bg-success" : "bg-secondary")">
+            @(Model.Activo ? "Activo" : "Inactivo")
+        </span>
+    </li>
+</ul>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Editar</a>
+<a asp-action="Index" class="btn btn-link">Volver</a>
+

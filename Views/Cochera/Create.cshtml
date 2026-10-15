@@ -1,0 +1,36 @@
+@model Cochera
+@{
+    ViewData["Title"] = "Nueva cochera";
+}
+
+<h1>Nueva cochera</h1>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    @* Toda cochera nueva nace libre; el estado lo cambian Ingreso y Egreso, no el usuario. *@
+    <input type="hidden" asp-for="Estado" value="Libre" />
+    <input type="hidden" asp-for="Activo" value="true" />
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Numero" class="form-label">Número</label>
+            <input asp-for="Numero" class="form-control" />
+            <span asp-validation-for="Numero" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="IdTipoVehiculo" class="form-label">Tipo de vehículo</label>
+            <select asp-for="IdTipoVehiculo" asp-items="ViewBag.TiposVehiculo" class="form-select">
+                <option value="">-- Seleccionar --</option>
+            </select>
+            <span asp-validation-for="IdTipoVehiculo" class="text-danger"></span>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-action="Index" class="btn btn-link">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

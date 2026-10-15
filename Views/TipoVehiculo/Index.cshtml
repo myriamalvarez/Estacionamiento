@@ -1,0 +1,38 @@
+@model List<TipoVehiculo>
+@{
+    ViewData["Title"] = "Tipos de vehículo";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Tipos de vehículo</h1>
+    <a asp-action="Create" class="btn btn-primary">+ Nuevo tipo</a>
+</div>
+
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Descripción</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tipo in Model)
+        {
+            <tr>
+                <td>@tipo.Descripcion</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@tipo.Id">Editar</a>
+                    <form asp-action="Eliminar" method="post" class="d-inline" onsubmit="return confirm('¿Eliminar este tipo de vehículo?');">
+                        <input type="hidden" name="id" value="@tipo.Id" />
+                        <button type="submit" class="btn btn-link text-danger p-0 ms-2">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="2" class="text-center text-muted">No hay tipos de vehículo cargados.</td></tr>
+        }
+    </tbody>
+</table>
+

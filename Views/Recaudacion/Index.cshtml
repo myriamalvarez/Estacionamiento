@@ -1,0 +1,145 @@
+@{
+    ViewData["Title"] = "Recaudación";
+}
+
+<div id="app" v-cloak>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Recaudación</h1>
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0">Fecha</label>
+            <input type="date" class="form-control" v-model="fecha" @@change="cambiarFecha" />
+            <button class="btn btn-outline-secondary" @@click="hoy">Hoy</button>
+        </div>
+    </div>
+
+    <div v-if="error" class="alert alert-danger">{{ error }}</div>
+
+    <div class="row g-3 mb-4" v-if="resumen">
+        <div class="col-md-4">
+            <div class="card border-success h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Total cobrado</div>
+                    <div class="fs-2 fw-bold text-success">{{ dinero(resumen.totalGeneral) }}</div>
+                    <div class="text-muted small">{{ resumen.cantidadPagos }} pago(s) · {{ resumen.anulados }} anulado(s)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header">Por método de pago</div>
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Método</th><th class="text-end">Pagos</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>
+                        <tr v-for="m in resumen.porMetodo" :key="m.metodo">
+                            <td>{{ m.metodo }}</td>
+                            <td class="text-end">{{ m.cantidad }}</td>
+                            <td class="text-end">{{ dinero(m.total) }}</td>
+                        </tr>
+                        <tr v-if="resumen.porMetodo.length === 0">
+                            <td colspan="3" class="text-center text-muted">No hay pagos registrados en esta fecha.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <h5>Detalle de pagos</h5>
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr><th>Hora</th><th>Patente</th><th>Método</th><th>Cobrado por</th><th class="text-end">Monto</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>
+            <tr v-for="p in items" :key="p.id" :class="{ 'text-muted': !p.estado }">
+                <td>{{ p.hora }}</td>
+                <td><strong>{{ p.patente }}</strong></td>
+                <td>{{ p.metodoPago }}</td>
+                <td>{{ p.cobradoPor }}</td>
+                <td class="text-end">{{ dinero(p.monto) }}</td>
+                <td><span class="badge" :class="p.estado ? 'bg-success' : 'bg-danger'">{{ p.estado ? 'Registrado' : 'Anulado' }}</span></td>
+                <td class="text-end"><a :href="urlEstadia + p.idEstadia" class="btn btn-sm btn-outline-primary">Ver estadía</a></td>
+            </tr>
+            <tr v-if="items.length === 0">
+                <td colspan="7" class="text-center text-muted">No hay pagos en esta fecha.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">{{ total }} pago(s) — página {{ pagina }} de {{ totalPaginas || 1 }}</small>
+        <nav>
+            <ul class="pagination mb-0">
+                <li class="page-item" :class="{ disabled: pagina <= 1 }">
+                    <button class="page-link" @@click="irAPagina(pagina - 1)">Anterior</button>
+                </li>
+                <li class="page-item" :class="{ disabled: pagina >= totalPaginas }">
+                    <button class="page-link" @@click="irAPagina(pagina + 1)">Siguiente</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const { createApp } = Vue;
+
+        // yyyy-MM-dd de HOY en hora local (toISOString usaría UTC y podría dar el día siguiente de noche)
+        const hoyLocal = () => {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        };
+
+        createApp({
+            data() {
+                return {
+                    fecha: hoyLocal(), resumen: null, error: '',
+                    items: [], total: 0, pagina: 1, tamanioPagina: 10, totalPaginas: 0,
+                    urlEstadia: '@Url.Content("~/Estadia/Details/")'
+                };
+            },
+            mounted() { this.cargarTodo(); },
+            methods: {
+                dinero(n) {
+                    return '$ ' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                },
+                async cargarTodo() {
+                    this.pagina = 1;
+                    await Promise.all([this.cargarResumen(), this.cargarPagos()]);
+                },
+                async cargarResumen() {
+                    try {
+                        const resp = await fetch('@Url.Action("ResumenJson", "Recaudacion")?fecha=' + this.fecha);
+                        if (!resp.ok) throw new Error('Error ' + resp.status);
+                        this.resumen = await resp.json();
+                        this.error = '';
+                    } catch (e) {
+                        this.error = 'No se pudo cargar el resumen (' + e.message + ').';
+                    }
+                },
+                async cargarPagos() {
+                    try {
+                        const params = new URLSearchParams({ fecha: this.fecha, pagina: this.pagina, tamanioPagina: this.tamanioPagina });
+                        const resp = await fetch('@Url.Action("PagosJson", "Recaudacion")?' + params);
+                        if (!resp.ok) throw new Error('Error ' + resp.status);
+                        const data = await resp.json();
+                        this.items = data.items;
+                        this.total = data.total;
+                        this.totalPaginas = data.totalPaginas;
+                    } catch (e) {
+                        this.error = 'No se pudo cargar el detalle (' + e.message + ').';
+                        this.items = [];
+                    }
+                },
+                irAPagina(n) {
+                    if (n < 1 || n > this.totalPaginas) return;
+                    this.pagina = n;
+                    this.cargarPagos();
+                },
+                cambiarFecha() { if (this.fecha) this.cargarTodo(); },
+                hoy() { this.fecha = hoyLocal(); this.cargarTodo(); }
+            }
+        }).mount('#app');
+    </script>
+}
+

@@ -1,0 +1,17 @@
+@model Abono
+@{
+    ViewData["Title"] = "Editar abono";
+}
+
+<h1>Editar abono</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    <partial name="_Formulario" model="Model" />
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

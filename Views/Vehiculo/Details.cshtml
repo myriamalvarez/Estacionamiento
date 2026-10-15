@@ -1,0 +1,56 @@
+@model Vehiculo
+@{
+    ViewData["Title"] = "Detalle del vehículo";
+}
+
+<h1>@Model.Patente</h1>
+
+<ul class="list-group mb-4">
+    <li class="list-group-item"><strong>Marca / Modelo:</strong> @Model.Marca @Model.Modelo</li>
+    <li class="list-group-item"><strong>Color:</strong> @(Model.Color ?? "—")</li>
+    <li class="list-group-item"><strong>Tipo:</strong> @Model.TipoVehiculo?.Descripcion</li>
+    <li class="list-group-item">
+        <strong>Cliente:</strong>
+        @if (Model.Cliente != null)
+        {
+            <a asp-controller="Cliente" asp-action="Details" asp-route-id="@Model.Cliente.Id">
+                @Model.Cliente.Apellido, @Model.Cliente.Nombre
+            </a>
+        }
+        else
+        {
+            <span class="text-muted">Sin cliente asociado (ocasional)</span>
+        }
+    </li>
+</ul>
+
+<div class="d-flex gap-2 mb-4">
+    <a asp-action="Index" asp-route-editar="@Model.Id" class="btn btn-outline-secondary">Editar</a>
+    <a asp-action="Index" class="btn btn-link">Volver al listado</a>
+</div>
+
+<h5>Últimas estadías</h5>
+@if (Model.Estadias.Any())
+{
+    <table class="table table-sm">
+        <thead>
+            <tr><th>Ingreso</th><th>Egreso</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var e in Model.Estadias.OrderByDescending(e => e.FechaHoraIngreso).Take(10))
+            {
+                <tr>
+                    <td>@e.FechaHoraIngreso.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@(e.FechaHoraEgreso?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                    <td>@(e.Estado ? "En curso" : "Finalizada")</td>
+                    <td><a asp-controller="Estadia" asp-action="Details" asp-route-id="@e.Id">Ver</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-muted">Este vehículo todavía no tiene estadías.</p>
+}
+

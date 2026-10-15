@@ -1,0 +1,295 @@
+@{
+    ViewData["Title"] = "Vehículos";
+    var esAdmin = User.IsInRole("Administrador");
+}
+
+<div id="app" v-cloak>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Vehículos</h1>
+        <button class="btn btn-primary" @@click="abrirNuevo">+ Nuevo vehículo</button>
+    </div>
+
+    <div v-if="mensaje" class="alert alert-success alert-dismissible">
+        {{ mensaje }}
+        <button type="button" class="btn-close" @@click="mensaje = ''"></button>
+    </div>
+    <div v-if="error" class="alert alert-danger">{{ error }}</div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <input type="text" class="form-control" placeholder="Buscar por patente..."
+                   v-model="term" @@input="buscar" />
+        </div>
+    </div>
+
+    <div v-if="cargando" class="text-muted">Cargando...</div>
+
+    <table v-else class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Patente</th>
+                <th>Marca / Modelo</th>
+                <th>Tipo</th>
+                <th>Cliente</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="v in items" :key="v.id">
+                <td><strong>{{ v.patente }}</strong></td>
+                <td>{{ v.marca }} {{ v.modelo }}</td>
+                <td>{{ v.tipo }}</td>
+                <td>{{ v.cliente ?? '—' }}</td>
+                <td class="text-end text-nowrap">
+                    <a :href="urlBase + 'Details/' + v.id" class="btn btn-sm btn-outline-primary">Ver</a>
+                    <button class="btn btn-sm btn-outline-secondary" @@click="abrirEditar(v.id)">Editar</button>
+                    @if (esAdmin)
+                    {
+                        <button class="btn btn-sm btn-outline-danger" @@click="eliminar(v)">Eliminar</button>
+                    }
+                </td>
+            </tr>
+            <tr v-if="items.length === 0">
+                <td colspan="5" class="text-center text-muted">No se encontraron vehículos.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">{{ total }} vehículo(s) — página {{ pagina }} de {{ totalPaginas || 1 }}</small>
+        <nav>
+            <ul class="pagination mb-0">
+                <li class="page-item" :class="{ disabled: pagina <= 1 }">
+                    <button class="page-link" @@click="irAPagina(pagina - 1)">Anterior</button>
+                </li>
+                <li class="page-item" :class="{ disabled: pagina >= totalPaginas }">
+                    <button class="page-link" @@click="irAPagina(pagina + 1)">Siguiente</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Formulario de alta / modificación (modal de Bootstrap controlado por Vue) -->
+    <div class="modal fade" ref="modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form @@submit.prevent="guardar">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ form.id ? 'Editar vehículo' : 'Nuevo vehículo' }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Patente</label>
+                                <input class="form-control text-uppercase" :class="{ 'is-invalid': errores.patente }" v-model="form.patente" />
+                                <div class="invalid-feedback">{{ primero(errores.patente) }}</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Marca</label>
+                                <input class="form-control" :class="{ 'is-invalid': errores.marca }" v-model="form.marca" />
+                                <div class="invalid-feedback">{{ primero(errores.marca) }}</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Modelo</label>
+                                <input class="form-control" :class="{ 'is-invalid': errores.modelo }" v-model="form.modelo" />
+                                <div class="invalid-feedback">{{ primero(errores.modelo) }}</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Color</label>
+                                <input class="form-control" :class="{ 'is-invalid': errores.color }" v-model="form.color" />
+                                <div class="invalid-feedback">{{ primero(errores.color) }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de vehículo</label>
+                                <select class="form-select" :class="{ 'is-invalid': errores.idTipoVehiculo }" v-model.number="form.idTipoVehiculo">
+                                    <option :value="0">-- Seleccionar --</option>
+                                    <option v-for="t in tipos" :key="t.id" :value="t.id">{{ t.descripcion }}</option>
+                                </select>
+                                <div class="invalid-feedback">{{ primero(errores.idTipoVehiculo) }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Cliente: búsqueda asíncrona en el servidor (no se carga la lista completa) -->
+                        <div class="mb-3 position-relative">
+                            <label class="form-label">Cliente (opcional)</label>
+                            <div class="input-group">
+                                <input class="form-control" v-model="clienteTexto" @@input="buscarCliente"
+                                       placeholder="Buscar por DNI o apellido..." autocomplete="off" />
+                                <button type="button" class="btn btn-outline-secondary" @@click="quitarCliente">Quitar</button>
+                            </div>
+                            <div class="list-group position-absolute shadow w-100" style="z-index: 2000;" v-if="resultadosCliente !== null">
+                                <button type="button" class="list-group-item list-group-item-action"
+                                        v-for="c in resultadosCliente" :key="c.id" @@click="elegirCliente(c)">
+                                    {{ c.apellido }}, {{ c.nombre }} (DNI {{ c.dni }})
+                                </button>
+                                <div class="list-group-item text-muted" v-if="resultadosCliente.length === 0">Sin resultados</div>
+                            </div>
+                            <div class="form-text">Dejalo vacío si es un vehículo ocasional sin cliente registrado.</div>
+                            <div class="text-danger small" v-if="errores.idCliente">{{ primero(errores.idCliente) }}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-link" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" :disabled="guardando">
+                            {{ guardando ? 'Guardando...' : 'Guardar' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const { createApp } = Vue;
+        const base = '@Url.Content("~/Vehiculo/")';
+
+        const formVacio = () => ({ id: 0, patente: '', marca: '', modelo: '', color: '', idTipoVehiculo: 0, idCliente: null });
+
+        createApp({
+            data() {
+                return {
+                    items: [], total: 0, pagina: 1, tamanioPagina: 10, totalPaginas: 0,
+                    term: '', cargando: false, error: '', mensaje: '', temporizador: null,
+                    urlBase: base,
+                    tipos: [], form: formVacio(), errores: {}, guardando: false, modal: null,
+                    clienteTexto: '', resultadosCliente: null, temporizadorCliente: null
+                };
+            },
+            async mounted() {
+                this.modal = new bootstrap.Modal(this.$refs.modal);
+                await Promise.all([this.cargar(), this.cargarTipos()]);
+
+                // Atajos desde otras pantallas: /Vehiculo?nuevo=1  o  /Vehiculo?editar=5
+                const params = new URLSearchParams(location.search);
+                if (params.get('nuevo')) this.abrirNuevo();
+                if (params.get('editar')) this.abrirEditar(params.get('editar'));
+            },
+            methods: {
+                primero(lista) { return lista && lista.length ? lista[0] : ''; },
+
+                // ---------- LISTADO (paginado en el servidor) ----------
+                async cargar() {
+                    this.cargando = true;
+                    try {
+                        const params = new URLSearchParams({
+                            pagina: this.pagina, tamanioPagina: this.tamanioPagina, term: this.term
+                        });
+                        const resp = await fetch(base + 'ListarJson?' + params);
+                        if (!resp.ok) throw new Error('Error ' + resp.status);
+                        const data = await resp.json();
+                        this.error = '';
+                        this.items = data.items;
+                        this.total = data.total;
+                        this.totalPaginas = data.totalPaginas;
+                        // si se borró el último de la última página, retrocede
+                        if (this.items.length === 0 && this.pagina > 1) { this.pagina--; return this.cargar(); }
+                    } catch (e) {
+                        this.error = 'No se pudo cargar el listado (' + e.message + ').';
+                        this.items = [];
+                    } finally {
+                        this.cargando = false;
+                    }
+                },
+                irAPagina(n) {
+                    if (n < 1 || n > this.totalPaginas) return;
+                    this.pagina = n;
+                    this.cargar();
+                },
+                buscar() {
+                    clearTimeout(this.temporizador);
+                    this.temporizador = setTimeout(() => { this.pagina = 1; this.cargar(); }, 300);
+                },
+                async cargarTipos() {
+                    const resp = await fetch(base + 'TiposJson');
+                    this.tipos = await resp.json();
+                },
+
+                // ---------- ALTA ----------
+                abrirNuevo() {
+                    this.form = formVacio();
+                    this.errores = {};
+                    this.clienteTexto = '';
+                    this.resultadosCliente = null;
+                    this.modal.show();
+                },
+
+                // ---------- MODIFICACIÓN ----------
+                async abrirEditar(id) {
+                    const resp = await fetch(base + 'ObtenerJson?id=' + id);
+                    if (!resp.ok) { this.error = 'No se pudo cargar el vehículo.'; return; }
+                    const v = await resp.json();
+                    this.form = {
+                        id: v.id, patente: v.patente, marca: v.marca, modelo: v.modelo,
+                        color: v.color ?? '', idTipoVehiculo: v.idTipoVehiculo, idCliente: v.idCliente
+                    };
+                    this.clienteTexto = v.clienteNombre ?? '';
+                    this.errores = {};
+                    this.resultadosCliente = null;
+                    this.modal.show();
+                },
+
+                // ---------- GUARDAR (alta o modificación) ----------
+                async guardar() {
+                    this.guardando = true;
+                    this.errores = {};
+                    try {
+                        const resp = await fetch(base + 'GuardarJson', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
+                        const data = await resp.json();
+                        if (resp.status === 400 && data.errores) { this.errores = data.errores; return; }
+                        if (!resp.ok) throw new Error(data.mensaje || 'Error ' + resp.status);
+
+                        this.modal.hide();
+                        this.mensaje = data.mensaje;
+                        await this.cargar();
+                    } catch (e) {
+                        this.errores = { patente: [e.message] };
+                    } finally {
+                        this.guardando = false;
+                    }
+                },
+
+                // ---------- BAJA ----------
+                async eliminar(v) {
+                    if (!confirm('¿Eliminar el vehículo ' + v.patente + '?')) return;
+                    const resp = await fetch(base + 'EliminarJson?id=' + v.id, { method: 'POST' });
+                    const data = await resp.json().catch(() => ({}));
+                    if (!resp.ok) { this.error = data.mensaje || 'No se pudo eliminar.'; return; }
+                    this.mensaje = data.mensaje;
+                    await this.cargar();
+                },
+
+                // ---------- Búsqueda asíncrona de clientes ----------
+                buscarCliente() {
+                    this.form.idCliente = null; // si escribe de nuevo, se descarta la selección anterior
+                    clearTimeout(this.temporizadorCliente);
+                    const term = this.clienteTexto.trim();
+                    if (term.length < 2) { this.resultadosCliente = null; return; }
+                    this.temporizadorCliente = setTimeout(async () => {
+                        const resp = await fetch('@Url.Action("Buscar", "Cliente")?term=' + encodeURIComponent(term));
+                        this.resultadosCliente = await resp.json();
+                    }, 300);
+                },
+                elegirCliente(c) {
+                    this.form.idCliente = c.id;
+                    this.clienteTexto = c.apellido + ', ' + c.nombre + ' (DNI ' + c.dni + ')';
+                    this.resultadosCliente = null;
+                },
+                quitarCliente() {
+                    this.form.idCliente = null;
+                    this.clienteTexto = '';
+                    this.resultadosCliente = null;
+                }
+            }
+        }).mount('#app');
+    </script>
+}
+

@@ -1,0 +1,17 @@
+@model Tarifa
+@{
+    ViewData["Title"] = "Editar tarifa";
+}
+
+<h1>Editar tarifa</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    <partial name="_Formulario" model="Model" />
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a asp-action="Index" class="btn btn-link">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
