@@ -1,0 +1,105 @@
+@model Estadia
+@{
+    ViewData["Title"] = "Detalle de la estadía";
+}
+
+<h1>Estadía de @Model.Vehiculo?.Patente</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <ul class="list-group mb-4">
+            <li class="list-group-item">
+                <strong>Vehículo:</strong>
+                <a asp-controller="Vehiculo" asp-action="Details" asp-route-id="@Model.IdVehiculo">@Model.Vehiculo?.Patente</a>
+                — @Model.Vehiculo?.Marca @Model.Vehiculo?.Modelo
+            </li>
+            <li class="list-group-item">
+                <strong>Cliente:</strong>
+                @(Model.Vehiculo?.Cliente != null ? $"{Model.Vehiculo.Cliente.Apellido}, {Model.Vehiculo.Cliente.Nombre}" : "Ocasional")
+            </li>
+            <li class="list-group-item"><strong>Cochera:</strong> @Model.Cochera?.Numero</li>
+            <li class="list-group-item"><strong>Ingreso:</strong> @Model.FechaHoraIngreso.ToString("dd/MM/yyyy HH:mm")</li>
+            <li class="list-group-item"><strong>Egreso:</strong> @(Model.FechaHoraEgreso?.ToString("dd/MM/yyyy HH:mm") ?? "—")</li>
+            <li class="list-group-item">
+                <strong>Estado:</strong>
+                <span class="badge @(Model.Estado ? "bg-primary" : "bg-secondary")">@(Model.Estado ? "En curso" : "Finalizada")</span>
+            </li>
+            <li class="list-group-item"><strong>Registrado por:</strong> @Model.Usuario?.Nombre @Model.Usuario?.Apellido</li>
+            <li class="list-group-item">
+                <strong>Cobertura:</strong>
+                @if (Model.Abono != null)
+                {
+                    <a asp-controller="Abono" asp-action="Details" asp-route-id="@Model.IdAbono">Abono vigente</a>
+                }
+                else if (Model.Tarifa != null)
+                {
+                    @($"{Model.Tarifa.Descripcion} (por {Model.Tarifa.UnidadTiempo.ToLower()})")
+                }
+                else
+                {
+                    <span class="text-muted">Se define al registrar el egreso</span>
+                }
+            </li>
+        </ul>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">Pago</div>
+            <div class="card-body">
+                @if (Model.Pago != null)
+                {
+                    <p class="mb-1"><strong>Monto:</strong> $ @Model.Pago.Monto.ToString("N2")</p>
+                    <p class="mb-1"><strong>Método:</strong> @Model.Pago.MetodoPago</p>
+                    <p class="mb-1"><strong>Fecha:</strong> @Model.Pago.FechaHoraPago.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-1">
+                        <strong>Estado:</strong>
+                        <span class="badge @(Model.Pago.Estado ? "bg-success" : "bg-danger")">@(Model.Pago.Estado ? "Registrado" : "Anulado")</span>
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.Pago.Comprobante))
+                    {
+                        <p class="mb-2"><a href="@Model.Pago.Comprobante" target="_blank">Ver comprobante</a></p>
+                    }
+                    @if (Model.Pago.Estado)
+                    {
+                        <form asp-controller="Pago" asp-action="Anular" method="post" onsubmit="return confirm('¿Anular este pago?');">
+                            <input type="hidden" name="id" value="@Model.Pago.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Anular pago</button>
+                        </form>
+                    }
+                    else if (ViewBag.ImportePendiente != null)
+                    {
+                        <hr />
+                        <p class="text-muted small mb-2">El pago fue anulado. Podés volver a registrarlo; reemplaza al anulado.</p>
+                        <a asp-controller="Pago" asp-action="Create"
+                           asp-route-idEstadia="@Model.Id" asp-route-importe="@(((decimal)ViewBag.ImportePendiente).ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                           class="btn btn-success">Registrar pago nuevamente</a>
+                    }
+                }
+                else if (!Model.Estado)
+                {
+                    <p class="text-muted">La estadía finalizó y todavía no tiene pago.</p>
+                    @if (ViewBag.ImportePendiente != null)
+                    {
+                        <a asp-controller="Pago" asp-action="Create"
+                           asp-route-idEstadia="@Model.Id" asp-route-importe="@(((decimal)ViewBag.ImportePendiente).ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                           class="btn btn-success">Registrar pago</a>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted mb-0">El pago se registra al finalizar la estadía.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    @if (Model.Estado)
+    {
+        <a asp-action="Egreso" asp-route-id="@Model.Id" class="btn btn-warning">Registrar egreso</a>
+    }
+    <a asp-action="Index" class="btn btn-link">Volver</a>
+</div>
+

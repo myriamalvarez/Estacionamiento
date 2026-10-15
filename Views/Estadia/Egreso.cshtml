@@ -1,0 +1,26 @@
+@model Estadia
+@{
+    ViewData["Title"] = "Registrar egreso";
+    var perm = DateTime.Now - Model.FechaHoraIngreso;
+}
+
+<h1>Registrar egreso</h1>
+
+<ul class="list-group mb-4">
+    <li class="list-group-item"><strong>Vehículo:</strong> @Model.Vehiculo?.Patente — @Model.Vehiculo?.Marca @Model.Vehiculo?.Modelo</li>
+    <li class="list-group-item"><strong>Cochera:</strong> @Model.Cochera?.Numero</li>
+    <li class="list-group-item"><strong>Ingreso:</strong> @Model.FechaHoraIngreso.ToString("dd/MM/yyyy HH:mm")</li>
+    <li class="list-group-item"><strong>Permanencia hasta ahora:</strong> @((int)perm.TotalHours) h @perm.Minutes min</li>
+    <li class="list-group-item">
+        <strong>Cobertura:</strong>
+        @(Model.IdAbono != null ? "Cubierta por abono (importe $ 0)" : "Se calcula con la tarifa según el tiempo de permanencia")
+    </li>
+</ul>
+
+<form asp-action="Egreso" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <input type="hidden" name="confirmar" value="true" />
+    <button type="submit" class="btn btn-warning">Confirmar egreso y cobrar</button>
+    <a asp-action="Index" class="btn btn-link">Cancelar</a>
+</form>
+

@@ -1,0 +1,40 @@
+@model Cliente
+@{
+    ViewData["Title"] = "Detalle del cliente";
+}
+
+<h1>@Model.Nombre @Model.Apellido</h1>
+
+<ul class="list-group mb-4">
+    <li class="list-group-item"><strong>DNI:</strong> @Model.Dni</li>
+    <li class="list-group-item"><strong>Teléfono:</strong> @Model.Telefono</li>
+    <li class="list-group-item"><strong>Email:</strong> @Model.Email</li>
+</ul>
+
+<div class="d-flex gap-2 mb-4">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Editar</a>
+    <form asp-action="Eliminar" method="post" onsubmit="return confirm('¿Eliminar este cliente?');">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-outline-danger">Eliminar</button>
+    </form>
+</div>
+
+<h5>Vehículos</h5>
+@if (Model.Vehiculos.Any())
+{
+    <ul class="list-group">
+        @foreach (var vehiculo in Model.Vehiculos)
+        {
+            <li class="list-group-item">
+                <a asp-controller="Vehiculo" asp-action="Details" asp-route-id="@vehiculo.Id">
+                    @vehiculo.Patente — @vehiculo.Marca @vehiculo.Modelo
+                </a>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="text-muted">Este cliente todavía no tiene vehículos registrados.</p>
+}
+

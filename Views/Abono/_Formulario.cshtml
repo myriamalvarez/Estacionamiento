@@ -1,0 +1,98 @@
+@model Abono
+
+@* Cliente y vehículo se eligen con búsqueda Ajax (Cliente/Buscar y Vehiculo/BuscarPorPatente):
+   nunca se cargan todos los registros en un desplegable. *@
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<input type="hidden" asp-for="Id" />
+<input type="hidden" asp-for="Estado" />
+<input type="hidden" asp-for="Activo" />
+
+<div class="row">
+    <div class="col-md-6 mb-3 position-relative">
+        <label class="form-label">Cliente</label>
+        <input type="hidden" asp-for="IdCliente" />
+        <input type="text" id="buscadorCliente" class="form-control" autocomplete="off"
+               placeholder="Buscar por DNI o apellido..." value="@ViewBag.ClienteNombre" />
+        <div class="list-group position-absolute shadow w-100" id="resultadosCliente" style="z-index: 10;"></div>
+        <span asp-validation-for="IdCliente" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 mb-3 position-relative">
+        <label class="form-label">Vehículo</label>
+        <input type="hidden" asp-for="IdVehiculo" />
+        <input type="text" id="buscadorVehiculo" class="form-control" autocomplete="off"
+               placeholder="Buscar por patente..." value="@ViewBag.VehiculoNombre" />
+        <div class="list-group position-absolute shadow w-100" id="resultadosVehiculo" style="z-index: 10;"></div>
+        <span asp-validation-for="IdVehiculo" class="text-danger"></span>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="FechaInicio" class="form-label"></label>
+        <input asp-for="FechaInicio" type="date" value="@Model.FechaInicio.ToString("yyyy-MM-dd")" class="form-control" />
+        <span asp-validation-for="FechaInicio" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="FechaFin" class="form-label"></label>
+        <input asp-for="FechaFin" type="date" value="@Model.FechaFin.ToString("yyyy-MM-dd")" class="form-control" />
+        <span asp-validation-for="FechaFin" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="Precio" class="form-label"></label>
+        <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input asp-for="Precio" class="form-control" />
+        </div>
+        <span asp-validation-for="Precio" class="text-danger"></span>
+    </div>
+</div>
+
+<script>
+    // Selector genérico con búsqueda Ajax: escribe -> consulta -> elige -> guarda el id en el hidden.
+    function activarBuscador(idInput, idHidden, idLista, url, etiqueta) {
+        const input = document.getElementById(idInput);
+        const hidden = document.getElementById(idHidden);
+        const lista = document.getElementById(idLista);
+        let temporizador;
+
+        input.addEventListener('input', () => {
+            hidden.value = '';
+            clearTimeout(temporizador);
+            const term = input.value.trim();
+            if (term.length < 2) { lista.innerHTML = ''; return; }
+
+            temporizador = setTimeout(async () => {
+                const resp = await fetch(url + '?term=' + encodeURIComponent(term));
+                const datos = await resp.json();
+                lista.innerHTML = '';
+                datos.forEach(d => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action';
+                    item.textContent = etiqueta(d);
+                    item.addEventListener('click', () => {
+                        hidden.value = d.id;
+                        input.value = item.textContent;
+                        lista.innerHTML = '';
+                    });
+                    lista.appendChild(item);
+                });
+                if (datos.length === 0) {
+                    const vacio = document.createElement('div');
+                    vacio.className = 'list-group-item text-muted';
+                    vacio.textContent = 'Sin resultados';
+                    lista.appendChild(vacio);
+                }
+            }, 300);
+        });
+    }
+
+    activarBuscador('buscadorCliente', 'IdCliente', 'resultadosCliente',
+        '@Url.Action("Buscar", "Cliente")',
+        c => `${c.apellido}, ${c.nombre} (DNI ${c.dni})`);
+
+    activarBuscador('buscadorVehiculo', 'IdVehiculo', 'resultadosVehiculo',
+        '@Url.Action("BuscarPorPatente", "Vehiculo")',
+        v => `${v.patente} — ${v.marca} ${v.modelo}`);
+</script>
+

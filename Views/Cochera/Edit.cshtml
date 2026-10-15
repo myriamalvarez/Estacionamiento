@@ -1,0 +1,36 @@
+@model Cochera
+@{
+    ViewData["Title"] = "Editar cochera";
+}
+
+<h1>Editar cochera</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Id" />
+    @* El estado no se edita a mano: lo maneja el flujo de ingreso/egreso. Se conserva tal cual. *@
+    <input type="hidden" asp-for="Estado" />
+    <input type="hidden" asp-for="Activo" />
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="Numero" class="form-label">Número</label>
+            <input asp-for="Numero" class="form-control" />
+            <span asp-validation-for="Numero" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="IdTipoVehiculo" class="form-label">Tipo de vehículo</label>
+            <select asp-for="IdTipoVehiculo" asp-items="ViewBag.TiposVehiculo" class="form-select"></select>
+            <span asp-validation-for="IdTipoVehiculo" class="text-danger"></span>
+        </div>
+    </div>
+    <p class="text-muted">Estado actual: <strong>@Model.Estado</strong> (se actualiza solo con los ingresos y egresos).</p>
+
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a asp-action="Index" class="btn btn-link">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

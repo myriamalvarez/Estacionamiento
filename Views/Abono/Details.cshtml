@@ -1,0 +1,49 @@
+@model Abono
+@{
+    ViewData["Title"] = "Detalle del abono";
+    var vigente = Model.Estado && Model.FechaInicio <= DateTime.Today && Model.FechaFin >= DateTime.Today;
+}
+
+<h1>Abono de @Model.Cliente?.Apellido, @Model.Cliente?.Nombre</h1>
+
+<ul class="list-group mb-4">
+    <li class="list-group-item">
+        <strong>Vehículo:</strong>
+        <a asp-controller="Vehiculo" asp-action="Details" asp-route-id="@Model.IdVehiculo">@Model.Vehiculo?.Patente</a>
+        — @Model.Vehiculo?.Marca @Model.Vehiculo?.Modelo
+    </li>
+    <li class="list-group-item"><strong>Período:</strong> @Model.FechaInicio.ToString("dd/MM/yyyy") al @Model.FechaFin.ToString("dd/MM/yyyy")</li>
+    <li class="list-group-item"><strong>Precio:</strong> $ @Model.Precio.ToString("N2")</li>
+    <li class="list-group-item">
+        <strong>Estado:</strong>
+        @if (!Model.Estado)
+        {
+            <span class="badge bg-danger">Cancelado</span>
+        }
+        else if (vigente)
+        {
+            <span class="badge bg-success">Vigente</span>
+        }
+        else
+        {
+            <span class="badge bg-secondary">Fuera de período</span>
+        }
+    </li>
+</ul>
+
+<div class="d-flex gap-2">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Editar</a>
+    @if (Model.Estado)
+    {
+        <form asp-action="Cancelar" method="post" onsubmit="return confirm('¿Cancelar este abono? Dejará de cubrir las estadías.');">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-outline-warning">Cancelar abono</button>
+        </form>
+    }
+    <form asp-action="Eliminar" method="post" onsubmit="return confirm('¿Eliminar este abono?');">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-outline-danger">Eliminar</button>
+    </form>
+    <a asp-action="Index" class="btn btn-link">Volver al listado</a>
+</div>
+

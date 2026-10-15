@@ -1,0 +1,24 @@
+@model Cochera
+@{
+    ViewData["Title"] = "Detalle de la cochera";
+}
+
+<h1>Cochera @Model.Numero</h1>
+
+<ul class="list-group mb-4">
+    <li class="list-group-item"><strong>Tipo de vehículo:</strong> @Model.TipoVehiculo?.Descripcion</li>
+    <li class="list-group-item">
+        <strong>Estado:</strong>
+        <span class="badge @(Model.Estado == "Libre" ? "bg-success" : "bg-danger")">@Model.Estado</span>
+    </li>
+</ul>
+
+<div class="d-flex gap-2">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Editar</a>
+    <form asp-action="Eliminar" method="post" onsubmit="return confirm('¿Eliminar esta cochera?');">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-outline-danger">Eliminar</button>
+    </form>
+    <a asp-action="Index" class="btn btn-link">Volver al listado</a>
+</div>
+
