@@ -1,0 +1,205 @@
+{
+  "info": {
+    "_postman_id": "8f056d1e-04a1-4322-8875-9105a062665b",
+    "name": "API-Estacionamiento",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "30472021"
+  },
+  "item": [
+    {
+      "name": "Login(Empleado)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nombreUsuario\": \"empleado\",\r\n \"password\": \"Empleado123\"\r\n }",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5151/api/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5151",
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login(Admin)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nombreUsuario\": \"admin\",\r\n \"password\": \"Admin123\"\r\n }",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:5151/api/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5151",
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Disponibilidad",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjYiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJGdWxsTmFtZSI6Ik1hcmNlbG8gTG9wZXoiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbmlzdHJhZG9yIiwiZXhwIjoxNzkyMjk5MTIxLCJpc3MiOiJFc3RhY2lvbmFtaWVudG9BcHAiLCJhdWQiOiJFc3RhY2lvbmFtaWVudG9Vc3VhcmlvcyJ9.UW6TKC-eGT3dfkZjHYysOWahWYMbdjaAIzrC9ZM7B3g",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5151/api/estacionamiento/disponibilidad",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5151",
+          "path": [
+            "api",
+            "estacionamiento",
+            "disponibilidad"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Vehiculos adentro (paginado)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjYiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJGdWxsTmFtZSI6Ik1hcmNlbG8gTG9wZXoiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbmlzdHJhZG9yIiwiZXhwIjoxNzkyMjk5MTIxLCJpc3MiOiJFc3RhY2lvbmFtaWVudG9BcHAiLCJhdWQiOiJFc3RhY2lvbmFtaWVudG9Vc3VhcmlvcyJ9.UW6TKC-eGT3dfkZjHYysOWahWYMbdjaAIzrC9ZM7B3g",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5151/api/estacionamiento/estadias-activas?pagina=1&tamanioPagina=10",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5151",
+          "path": [
+            "api",
+            "estacionamiento",
+            "estadias-activas"
+          ],
+          "query": [
+            {
+              "key": "pagina",
+              "value": "1"
+            },
+            {
+              "key": "tamanioPagina",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Estadía activa por patente",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjYiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJGdWxsTmFtZSI6Ik1hcmNlbG8gTG9wZXoiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbmlzdHJhZG9yIiwiZXhwIjoxNzkyMjk5MTIxLCJpc3MiOiJFc3RhY2lvbmFtaWVudG9BcHAiLCJhdWQiOiJFc3RhY2lvbmFtaWVudG9Vc3VhcmlvcyJ9.UW6TKC-eGT3dfkZjHYysOWahWYMbdjaAIzrC9ZM7B3g",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5151/api/estacionamiento/estadia-activa/EP984UJ",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5151",
+          "path": [
+            "api",
+            "estacionamiento",
+            "estadia-activa",
+            "EP984UJ"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Recaudación",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjYiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJGdWxsTmFtZSI6Ik1hcmNlbG8gTG9wZXoiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbmlzdHJhZG9yIiwiZXhwIjoxNzkyMjk5MTIxLCJpc3MiOiJFc3RhY2lvbmFtaWVudG9BcHAiLCJhdWQiOiJFc3RhY2lvbmFtaWVudG9Vc3VhcmlvcyJ9.UW6TKC-eGT3dfkZjHYysOWahWYMbdjaAIzrC9ZM7B3g",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5151/api/estacionamiento/recaudacion",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5151",
+          "path": [
+            "api",
+            "estacionamiento",
+            "recaudacion"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
