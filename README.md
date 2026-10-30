@@ -1,268 +1,104 @@
-# 🚗 PROYECTO: SISTEMA DE GESTIÓN DE ESTACIONAMIENTO
+# Estacionamiento — Sistema de gestión de cocheras
 
-Sistema web para la gestión integral de un estacionamiento, desarrollado como Proyecto Integrador Final.
+Aplicación web desarrollada con **ASP.NET Core MVC** (EF Core + MySQL) para la materia *Laboratorio de Programación II* (TUDS – ULP).
 
----
+> **Integrantes:** _Myriam Alvarez_ y _Leandra Campos_
 
-## 👥 Integrantes del Grupo
+## 1. Descripción y problema que resuelve
 
-* **Myriam Alvarez**
+Un estacionamiento necesita saber, en todo momento, **qué vehículos hay adentro, qué cocheras están libres u ocupadas y cuánto hay que cobrar** al salir. Hacerlo en papel genera errores de cobro y no deja historial.
 
-  * Email: [myriamalvarez1006@gmail.com](mailto:myriamalvarez1006@gmail.com)
-  * GitHub: [@myriamalvarez](https://github.com/myriamalvarez)
-  * Discord: myriamalvarez1006
-* **Leandra Campos**
+El sistema permite:
 
-  * Email: [camposleandra149@gmail.com](mailto:camposleandra149@gmail.com)
-  * GitHub: [@Leandra25](https://github.com/Leandra25)
-  * Discord: Leandra 7827
+- Registrar el **ingreso** de un vehículo, asignándole automáticamente una cochera libre compatible con su tipo. Si no hay lugar, el ingreso se rechaza.
+- Registrar el **egreso** y calcular el importe según el tiempo de permanencia (por hora hasta 24 h, por día después) y la tarifa del tipo de vehículo. Si el vehículo tiene un **abono vigente**, no se cobra.
+- Cobrar y guardar el **pago** con su **comprobante digital** (PDF o imagen).
+- Gestionar clientes, vehículos, abonos, cocheras, tarifas y usuarios, con permisos según el **rol**.
+- Consultar la disponibilidad y la recaudación desde una **Web API protegida con JWT**.
 
----
+## 2. Tecnologías
 
-## 📦 Alcance del Proyecto y Funcionalidades
+| Capa | Tecnología |
+|---|---|
+| Backend | ASP.NET Core MVC, EF Core (sin migraciones) + Pomelo MySQL, `EFCore.NamingConventions` |
+| Frontend | Razor, Bootstrap 5, **Vue 3** (CDN) con `fetch` / Ajax |
+| Seguridad | JWT (en cookie HttpOnly para la web, en header `Bearer` para la API), PBKDF2 + sal |
+| Base de datos | MySQL / MariaDB (XAMPP) |
 
-El sistema tiene como objetivo administrar las operaciones de un estacionamiento, incluyendo el ingreso, la permanencia y el egreso de vehículos.
+## 3. Modelo de datos
 
-Contempla la gestión de clientes, vehículos, tipos de vehículos, cocheras, tarifas, abonos, estadías y pagos con comprobantes digitales. También prevé la administración de usuarios, perfiles y permisos según el rol.
+![DER](Documentos/DER_Estacionamiento.png)
 
----
+9 tablas: `tipo_vehiculo`, `cliente`, `vehiculo`, `cochera`, `tarifa`, `abono`, `usuario`, `estadia`, `pago`.
+`estadia` depende de otras entidades (`vehiculo`, `cochera`, `usuario`, y opcionalmente `tarifa` y `abono`) y tiene una relación 1:1 con `pago`. Un cliente tiene muchos vehículos (1:N).
 
-## 📌 Módulos del Sistema
+## 4. Cómo ejecutarlo
 
-### 🗄️ Base de Datos
-
-* Base de datos relacional MySQL.
-* Persistencia de la información de las entidades.
-* Relaciones entre las entidades del sistema.
-* Acceso a datos mediante Entity Framework Core.
-
-### 👥 Clientes
-
-* Registro y modificación de datos personales.
-* Consulta de clientes.
-* Asociación de clientes con sus vehículos.
-* Gestión de los datos necesarios para identificar a los titulares de vehículos registrados.
-
-### 🚘 Tipos de Vehículos
-
-* Administración de tipos de vehículos, como automóviles, motocicletas y camionetas.
-* Asociación de cada vehículo con su tipo.
-* Gestión del estado activo o inactivo de los tipos.
-
-### 🚗 Vehículos
-
-* Registro de patente, marca, modelo y color.
-* Asociación con un tipo de vehículo.
-* Asociación opcional con un cliente para permitir el ingreso de vehículos ocasionales.
-
-### 🅿️ Cocheras
-
-* Registro y administración de cocheras.
-* Identificación de cada cochera.
-* Definición del tipo de vehículo compatible.
-* Control de disponibilidad y ocupación.
-
-### 💲 Tarifas
-
-* Configuración de tarifas por tipo de vehículo.
-* Definición de unidades de tiempo, como hora o día.
-* Registro del importe correspondiente.
-
-### 🎫 Abonos
-
-* Registro de abonos asociados a vehículos con cliente registrado.
-* Definición de fechas de inicio y vencimiento.
-* Registro del importe del abono.
-* Validación de la vigencia para determinar si corresponde cobrar una estadía por tarifa.
-
-### 🕒 Estadías e Ingreso/Egreso
-
-* Registro de fecha y hora de ingreso.
-* Asociación del vehículo, la cochera y el usuario que registra la operación.
-* Control de vehículos dentro del estacionamiento.
-* Registro de fecha y hora de salida.
-* Cálculo de la duración y del importe correspondiente.
-* Liberación de la cochera al finalizar la estadía y completar el proceso de pago.
-
-### 💳 Pagos y Comprobantes
-
-* Registro de pagos asociados a las estadías.
-* Registro de fecha, importe y medio de pago.
-* Asociación con el usuario que procesa el pago.
-* Almacenamiento de comprobantes digitales, como imágenes o archivos PDF.
-
-### 🔐 Usuarios, Autenticación y Autorización
-
-El sistema contempla usuarios con perfiles y permisos diferenciados.
-
-**Administrador**
-
-* Administración de usuarios y datos generales.
-* Gestión de cocheras, tarifas, tipos de vehículos y abonos.
-* Acceso a las funcionalidades administrativas autorizadas.
-
-**Empleado**
-
-* Registro de ingresos y egresos.
-* Consulta de disponibilidad.
-* Gestión de pagos y comprobantes, según los permisos asignados.
-
-
-
----
-
-## 🖥️ Interfaz de Usuario
-
-La aplicación está desarrollada con ASP.NET Core MVC.
-
-### Tecnologías utilizadas
-
-* **C# y ASP.NET Core MVC**
-* **Entity Framework Core**
-* **MySQL**
-* **Razor**
-* **HTML, CSS y JavaScript**
-* **Vue.js y AJAX/JSON**, para los requisitos de interacción dinámica.
-* **Git y GitHub**
-
-La interfaz contempla formularios de gestión, consultas y operaciones sobre las distintas entidades. Los requisitos de ABM mediante AJAX, paginación y búsqueda asíncrona se verificarán durante el desarrollo.
-
----
-
-# 📐 Modelado de Datos
-
-El modelo contempla entidades como Usuario, Cliente, Vehículo, Tipo de Vehículo, Cochera, Tarifa, Abono, Estadía y Pago.
-
-
-
-### 📐 Diagrama Entidad-Relación (DER)
-
-![Diagrama Entidad-Relación del Sistema de Gestión de Estacionamiento](Documentos/DER_Estacionamiento.png)
-
-
----
-
-# 🚀 Guía de Instalación y Ejecución
-
-## 1. 📥 Clonar el repositorio
-
-Repositorio del proyecto:
-
-https://github.com/myriamalvarez/Estacionamiento
-
-### Opción A — Desde Visual Studio Code
-
-1. Abrir Visual Studio Code.
-2. Abrir una terminal desde **Terminal → Nueva terminal**.
+1. Importar `estacionamiento_db.sql` en MySQL (phpMyAdmin / XAMPP).
+2. Revisar `appsettings.json`: cadena de conexión `DefaultConnection`, `Salt` y `TokenAuthentication`.
 3. Ejecutar:
+   ```bash
+   dotnet restore
+   dotnet run
+   ```
+4. Abrir `http://localhost:5151`.
 
-```bash
-git clone https://github.com/myriamalvarez/Estacionamiento.git
-cd Estacionamiento
-code .
+**Usuarios de prueba**:
+
+| Rol | Usuario | Contraseña |
+|---|---|---|
+| Administrador | `admin` | `Admin123` |
+| Empleado | `empleado` | `Empleado123` |
+
+**Permisos por rol**
+
+| Funcionalidad | Administrador | Empleado |
+|---|:-:|:-:|
+| Ingresos, egresos y cobros | ✅ | ✅ |
+| Clientes, vehículos y abonos (alta/edición) | ✅ | ✅ |
+| Eliminar registros, anular pagos | ✅ | ❌ |
+| Tarifas, tipos de vehículo, alta/edición de cocheras | ✅ | ❌ |
+| Gestión de usuarios | ✅ | ❌ |
+| Editar el propio perfil y avatar | ✅ | ✅ |
+| API: recaudación | ✅ | ❌ (403) |
+
+## 5. Matriz de evidencias de requisitos mínimos
+
+> Los enlaces apuntan al código dentro de este repositorio. Las evidencias (capturas/GIF) están en `Documentos/evidencias/`.
+
+| Requerimiento mínimo | Estado | Enlace al código / controladores | Evidencia |
+|---|:-:|---|---|
+| **1. Modelo de datos** (≥ 6 tablas, relación 1:N y entidad que depende de otras) | ✅ Cumplido | [EstacionamientoContext.cs](Data/EstacionamientoContext.cs) · [Estadia.cs](Models/Estadia.cs) (depende de Vehículo + Cochera + Usuario) | DER en [Documentos/DER_Estacionamiento.png](Documentos/DER_Estacionamiento.png) |
+| **2. Login/Logout, roles, restricción por rol y avatar** | ✅ Cumplido | Login: [UsuarioController.cs#L41](Controllers/UsuarioController.cs#L41) · Logout: [#L71](Controllers/UsuarioController.cs#L71) · Políticas/roles: [Program.cs#L64](Program.cs#L64) · Solo admin: [TarifaController.cs#L10](Controllers/TarifaController.cs#L10) · Avatar: [UsuarioController.cs#L252](Controllers/UsuarioController.cs#L252) | [Perfil con avatar](Documentos/evidencias/02-perfil-avatar.png) · [Acceso denegado al empleado](Documentos/evidencias/02b-acceso-denegado.png) |
+| **3. Manejo de archivos** (adicional al avatar): comprobante de pago | ✅ Cumplido | Validación: [PagoController.cs#L60](Controllers/PagoController.cs#L60) · Guardado en `wwwroot/uploads/comprobantes`: [#L88](Controllers/PagoController.cs#L88) · Vista: [Pago/Create.cshtml](Views/Pago/Create.cshtml) | [GIF: subida de comprobante](Documentos/evidencias/03-comprobante.gif) |
+| **4. ABM completo en Vue.js + AJAX** (alta, baja, modificación y listado sin recargar) — *Vehículos* | ✅ Cumplido | Vue: [Vehiculo/Index.cshtml](Views/Vehiculo/Index.cshtml) (modificación [#L222](Views/Vehiculo/Index.cshtml#L222), guardar [#L237](Views/Vehiculo/Index.cshtml#L237), baja [#L261](Views/Vehiculo/Index.cshtml#L261)) · Endpoints JSON: [ListarJson #L51](Controllers/VehiculoController.cs#L51), [GuardarJson #L119](Controllers/VehiculoController.cs#L119), [EliminarJson #L171](Controllers/VehiculoController.cs#L171) | [GIF: ABM de vehículos sin recarga](Documentos/evidencias/04-abm-vue.gif) |
+| **5. Paginado por servidor** | ✅ Cumplido | `Skip/Take` en la consulta: [VehiculoController.cs#L66](Controllers/VehiculoController.cs#L66). Mismo patrón en Cliente, Cochera, Abono, Usuario y Estadía (`ListarJson`, `ActivasJson`, `HistorialJson`) | [Captura: inspector de red con `pagina=2`](Documentos/evidencias/05-paginado-red.png) |
+| **6. Selección asíncrona de entidades relacionadas** | ✅ Cumplido | Cliente: [ClienteController.Buscar #L123](Controllers/ClienteController.cs#L123) · Vehículo: [VehiculoController.BuscarPorPatente #L195](Controllers/VehiculoController.cs#L195) · Uso en Vue: [Vehiculo/Index.cshtml#L271](Views/Vehiculo/Index.cshtml#L271) · También en [Abono/_Formulario.cshtml](Views/Abono/_Formulario.cshtml) y [Estadia/Ingreso.cshtml](Views/Estadia/Ingreso.cshtml) | [GIF: búsqueda asíncrona de cliente](Documentos/evidencias/06-busqueda-asincrona.gif) |
+| **7. Web API REST con JWT** | ✅ Cumplido | Login/token: [Api/AuthController.cs#L32](Api/AuthController.cs#L32), [ServicioSeguridad.GenerarToken #L43](Servicios/ServicioSeguridad.cs#L43) · Endpoints: [Api/EstacionamientoController.cs](Api/EstacionamientoController.cs) · Configuración JWT: [Program.cs#L26](Program.cs#L26) | Colección de Postman: [API-Estacionamiento.postman_collection.json](Documentos/API-Estacionamiento.postman_collection.json) + [Captura: Postman con Bearer Token (200)](Documentos/evidencias/07-postman-bearer.png) · [Captura: 403 con rol Empleado](Documentos/evidencias/07b-postman-403.png) |
+
+## 6. Web API (JWT)
+
+La web no consume la API de forma nativa, por eso se adjunta la colección de Postman.
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| POST | `/api/auth/login` | Público. Devuelve el token |
+| GET | `/api/estacionamiento/disponibilidad` | Token |
+| GET | `/api/estacionamiento/estadias-activas?pagina=1` | Token |
+| GET | `/api/estacionamiento/estadia-activa/{patente}` | Token |
+| GET | `/api/estacionamiento/recaudacion?fecha=2026-10-09` | Token con rol Administrador |
+
+Uso: importar la colección en Postman, ejecutar **Login administrador** (guarda el token solo) y luego los demás requests.
+
+## 7. Estructura
+
 ```
-
-También se puede clonar desde GitHub Desktop utilizando **File → Clone repository...**, ingresando la URL del repositorio.
-
-## 2. 🧰 Requisitos previos
-
-Instalar las siguientes herramientas:
-
-* Git.
-* Visual Studio Code.
-* SDK de .NET 10.
-* MySQL Server o una instalación compatible de MySQL/MariaDB.
-* MySQL Workbench, phpMyAdmin u otra herramienta para administrar la base de datos.
-
-## 3. 🗄️ Configurar la base de datos
-
-1. Iniciar el servidor MySQL.
-2. Abrir la herramienta de administración elegida.
-3. Importar y ejecutar el archivo `estacionamiento_db.sql` incluido en el repositorio.
-4. Verificar el nombre de la base de datos creada.
-5. Comprobar que la cadena de conexión coincida con la configuración local.
-
-## 4. 🔗 Configurar la conexión
-
-Abrir el archivo `appsettings.json` y revisar la cadena de conexión.
-
-Ejemplo orientativo:
-
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Port=3306;Database=estacionamiento_db;Uid=TU_USUARIO;Pwd=TU_CLAVE;"
-}
+Api/            Controllers de la Web API (JWT)
+Controllers/    Controllers MVC
+Data/           DbContext
+Models/         Entidades
+Servicios/      Hash de contraseñas y generación del JWT
+Views/          Vistas Razor (+ Vue en los listados)
+wwwroot/        Archivos estáticos y uploads (avatares, comprobantes)
+Documentos/           DER, colección de Postman y evidencias
 ```
-
-Reemplazar `TU_USUARIO` y `TU_CLAVE` por las credenciales locales. Los nombres de la conexión y de la base de datos deben coincidir con los utilizados por el proyecto y el script SQL.
-
-**Importante:** no subir contraseñas personales ni otros datos sensibles al repositorio.
-
-## 5. 📦 Restaurar las dependencias
-
-Desde la terminal de Visual Studio Code, ubicarse en la carpeta que contiene el archivo `.csproj` y ejecutar:
-
-```bash
-dotnet restore
-```
-
-## 6. 🔨 Compilar el proyecto
-
-Ejecutar:
-
-```bash
-dotnet build
-```
-
-
-
-## 7. ▶️ Ejecutar la aplicación
-
-Ejecutar:
-
-```bash
-dotnet run
-```
-
-La terminal mostrará la dirección local para acceder a la aplicación. Abrir esa URL en el navegador.
-
-La dirección y el puerto pueden variar según la configuración del proyecto.
-
----
-
-# 📋 Matriz de Cumplimiento de la Consigna
-
-La siguiente matriz permite identificar los requisitos solicitados y las evidencias que deberán incorporarse al repositorio. Los estados se actualizarán luego de revisar el código y realizar las pruebas correspondientes.
-
-| Requisito                                                                         | Estado                               | Evidencia esperada                           |
-| --------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------- |
-| Modelo de datos con al menos 6 entidades relacionadas y las relaciones requeridas | 🔎 Pendiente de verificar            | `Models/`, configuración de relaciones y DER |
-| Login y logout                                                                    | ⏳ Pendiente de implementar/verificar | Autenticación y cierre de sesión             |
-| Seguridad y autorización por roles                                                | ⏳ Pendiente de implementar/verificar | Atributos de autorización y validaciones     |
-| Funcionalidad restringida según el rol                                            | ⏳ Pendiente de implementar/verificar | Controladores y pruebas con ambos roles      |
-| Avatar personalizado de usuario                                                   | ⏳ Pendiente de implementar/verificar | Perfil y almacenamiento de imagen            |
-| Manejo de archivos adicional al avatar                                            | 🔎 Pendiente de verificar            | Carga y almacenamiento de comprobantes       |
-| ABM completo con Vue.js o tecnología reactiva y AJAX/JSON sin recargar la página  | 🔎 Pendiente de verificar            | Vistas, JavaScript y endpoints               |
-| Paginación del lado del servidor para los listados principales                    | 🔎 Pendiente de verificar            | Consultas y controladores                    |
-| Búsqueda asíncrona de entidades relacionadas                                      | 🔎 Pendiente de verificar            | Endpoints y formularios de búsqueda          |
-| Web API REST protegida con JWT                                                    | ⏳ Pendiente de implementar/verificar | Controladores API y configuración JWT        |
-| Colección de Postman, Bruno o Insomnia si la web no consume la API directamente   | 📌 Pendiente de determinar           | Colección de solicitudes                     |
-| Repositorio público con archivo `.gitignore`                                      | 🔎 Pendiente de verificar            | Repositorio de GitHub                        |
-| Diagrama DER o diagrama de clases                                                 | 📌 Pendiente de incorporar/verificar | Archivo de documentación                     |
-| README con descripción y matriz de evidencias                                     | 📝 Documentación en preparación      | `README.md`                                  |
-| Script SQL con datos de prueba para la entrega final                              | 🔎 Pendiente de verificar            | `estacionamiento_db.sql`                     |
-| Credenciales de prueba para cada rol                                              | 📌 Pendiente de preparar/verificar   | Documentación de acceso                      |
-
-**Referencias de estado:**
-
-* ✅ Cumplido y probado.
-* 🔎 Pendiente de verificar en el código.
-* ⏳ Pendiente de implementar o completar.
-* 📌 Pendiente de incorporar o determinar.
-* 📝 En preparación.
-
-
-
-## 🚧 Estado del Proyecto
-
-El proyecto se encuentra en desarrollo. La matriz de cumplimiento se utilizará para registrar el avance real de cada requisito, diferenciando las funcionalidades implementadas de aquellas que todavía deben desarrollarse o probarse.
